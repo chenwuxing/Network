@@ -212,8 +212,70 @@ socket其实对应的是内核中的一片缓冲区，Socket操作其实就是�
 
   - epoll
 
+      ```c
+    int epoll_create(int size);	/该函数生成一个epoll专用的文件描述符
+          size:epoll上能关注的最大描述符数
+      
+       int epoll_ctl(int epfd,int op,int fd,struct epoll_event *event);	// 用于控制某个epoll文件描述符事件，可以注册、修改、删除
+      	epfd:epoll_create生成的epoll专用描述符
+           op:
+      		（1）EPOLL_CTL_ADD 注册
+                 (2）EPOLL_CTL_MOD  修改
+                 (3)  EPOLL_CTL_DEL   删除
+                  
+           fd:关联的文件描述符
+           event:告诉内核要监听什么事件
+                  
+                  
+        int epoll_wait(int epfd,struct epoll_event *event,int maxevents,int timeout);	//等待IO事件发生，可以设置阻塞的函数，对应select与poll
+           epfd:要检测的句柄
+            events:用于回传待处理事件的数组
+            maxevents:告诉内核这个events的大小
+            timeout:超时时间  
+    ```
+  
+      <font color=red>epoll的三种模式</font>
+    
+    -   水平触发模式
+    
+        -   只要fd对应的缓冲区有数据
+        -   epoll_wait返回
+        -   返回的次数与发送数据的次数没有关系
+        -   epoll默认的工作模式
+    
+    -   边沿触发模式
+    
+        -   客户端给服务器端发数据
+    
+            -   发一次数据server的epoll_wait返回一次
+    
+            -   不在乎数据是否读完
+    
+            -   <font color=red>如果读不完，如何全部读出来？</font>
+    
+                while(recv());
+    
+                -   数据读完之后recv会阻塞
+    
+                -   解决阻塞问题
+    
+                    设置非阻塞-fd
+    
+    -   边沿非阻塞
+    
+        -   效率最高
+        -   如何设置非阻塞
+            -   open
+                -   设置flags
+                -   必须O_WDRW | O_NONBLOCK
+            -   fcntl
+                -   int flags = fcntl(fd,F_GETFL);
+                -   flag |= O_NONBLOCK
+                -   fcntl(fd,F_SETFL,flag);
+        -   将缓冲区的全部数据都读出
+  
   <font color=red>如何实现的？</font>
-
+  
   - 先构造一张有关文件描述符的列表，将要监听的文件描述符添加到该表中
   - 然后调用一个函数，监听该表中的文件描述符，直到这些描述符表中的一个进行I/O操作时，该函数才返回
     - 该函数为阻塞函数
