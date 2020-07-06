@@ -320,3 +320,26 @@ UDP使用场景
 
 
 
+## Linux下动态库找不到的解决方法
+
+1.  找到xxx.so放到/usr/lib	--不推荐
+
+2.  将xxx.so放到环境变量中
+
+    -   LD_LIBRARY_PATH
+        -   export LD_LIBRARY_PATH=xxxx
+            -   ~/.bashrc	--用户级别
+            -   /etc/profile    -- 系统级别
+        -   使用命令重新加载
+            -   . ~/.bashrc
+            -   . /etc/profiel
+            -   . 等价于source
+
+3.  修改/etc/ls.so.conf
+
+    a. 动态库路径添加到该文件中 -- 绝对路径
+
+    b. sudo ldconfig -v
+
+
+
