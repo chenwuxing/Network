@@ -343,6 +343,88 @@ UDP使用场景
 
 
 
+## Libevent网络库
+
+### libevent使用流程
+
+#### 不带缓冲区的事件处理
+
+1.  <font color=red>创建一个事件处理框架</font>
+    -   struct event_base *base
+2.  创建一事件
+    -   struct event* ev = event_new()    不带缓冲区的事件
+3.  事件添加到事件处理框架上
+    -   event_add(ev)
+4.  开始事件循环
+    -   event_base_dispatch(base)
+5.  释放资源
+    -   释放event_base
+        -   event_base_free(struct event_base *base)
+    -   释放事件
+        -   event_free(ev);
+
+#### 带缓冲区的事件处理
+
+1.  <font color=red>创建一个事件处理框架</font>
+
+    -   struct event_base *base
+
+2.  创建带缓冲区的事件
+
+    -   bev = bufferevent_socket_new()
+
+    -   给缓冲区设置回调函数
+
+        bufferevent_setcb(bev)
+
+3.  开始事件循环
+
+    -   event_base_dispatch(base)
+
+4.  释放资源
+
+    -   释放event_base
+        -   event_base_free(struct event_base *base)
+    -   释放事件
+        -   event_free(ev);
+
+### bufferevent理解
+
+-   是libevent为IO缓冲区操作提供的一种通用机制
+
+-   bufferevent由一个底层的传输端口（如套接字），一个读取缓冲区和一个写入缓冲区组成
+
+-   与通常的事件在底层传输端口已经就绪，可以读取或者写入的时候执行回调不同的是，bufferevent在读取或者写入足够量的数据之后调用用户提供的回调
+
+-   回调-缓冲区对应的操作
+
+    -   每个bufferevent有两个数据相关的回调
+        -   一个读取回调
+            -   从底层输出端口读取了任意量的数据之后会调用读取回调
+        -   一个写入回调
+            -   输出缓冲区中足够量的数据被清空到底层传输端口后写入回调会被调用
+
+-   相关函数
+
+    -   创建基于套接字的bufferevent   <font color=red>bufferevent_socket_new()</font>
+        -   给读写缓冲区设置回调    <font color=red>bufferevent_setcb</font>
+    -   在bufferevent上启动链接    <font color=red>bufferevent_socket_connect</font>，客户端连接服务器端
+    -   禁用、启用缓冲区 <font color=red>bufferevent_enable bufferevent_disable bufferevent_get_enabled</font>
+
+    ### 链接监听器
+
+    <font color=red>服务器端用的函数</font>
+
+    -   创建套接字
+    -   绑定ip和端口
+    -   监听
+    -   接收连接请求
+    -   <font color=red>evconnlistener_new_bind</font>分配和返回一个新的连接监听器对象，连接监听器使用event_base来得知什么时候在给定的监听套接字上有新的TCP连接，新连接到达时，监听器调用你给出的回调函数
+
+
+
+
+
 
 
 
